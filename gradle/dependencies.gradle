@@ -1,21 +1,21 @@
 ext {
     dependencies = [
             "appcompat"                  : "androidx.appcompat:appcompat:$androidx_appcompat_version",
-            "constraint-layout"          : 'androidx.constraintlayout:constraintlayout:2.0.0-alpha3',
+//            "constraint-layout"          : 'androidx.constraintlayout:constraintlayout:2.0.0-alpha3',
 //            "material-ui"                : 'com.google.android.material:material:1.1.0-alpha02',
 //            "junit"                      : 'junit:junit:4.12',
 //            "test-runner"                : 'androidx.test:runner:1.1.1',
 //            "test-espresso-core"         : 'androidx.test.espresso:espresso-core:3.1.1',
 //            "cardview"                   : 'androidx.cardview:cardview:1.0.0',
-            "recycleview"                : 'androidx.recyclerview:recyclerview:1.1.0-alpha02',
+//            "recycleview"                : 'androidx.recyclerview:recyclerview:1.1.0-alpha02',
 
             // Architecture components
             "lifecycle-ext"              : "androidx.lifecycle:lifecycle-extensions:2.0.0",
-            "lifecycle-runtime"          : "androidx.lifecycle:lifecycle-runtime:2.0.0",
-            "lifecycle-common-java8"     : "androidx.lifecycle:lifecycle-common-java8:2.0.0",
-            "lifecycle-compiler"         : "androidx.lifecycle:lifecycle-compiler:2.0.0",
-            "lifecycle.viewmodel_ktx"    : "androidx.lifecycle:lifecycle-viewmodel-ktx:2.0.0",
-            "lifecycle-reactivestreams"  : "androidx.lifecycle:lifecycle-reactivestreams:2.0.0",
+//            "lifecycle-runtime"          : "androidx.lifecycle:lifecycle-runtime:2.0.0",
+//            "lifecycle-common-java8"     : "androidx.lifecycle:lifecycle-common-java8:2.0.0",
+//            "lifecycle-compiler"         : "androidx.lifecycle:lifecycle-compiler:2.0.0",
+//            "lifecycle.viewmodel_ktx"    : "androidx.lifecycle:lifecycle-viewmodel-ktx:2.0.0",
+//            "lifecycle-reactivestreams"  : "androidx.lifecycle:lifecycle-reactivestreams:2.0.0",
 
 //            //JetPack-WorkManager后台任务组件
 //            "work_runtime"               : "androidx.work:work-runtime:2.0.0",
@@ -32,22 +32,22 @@ ext {
 //            "glide-transformations"      : 'jp.wasabeef:glide-transformations:4.0.0',
 
             //OkHttp
-            "okhttp"                     : 'com.squareup.okhttp3:okhttp:4.2.2',
+//            "okhttp"                     : 'com.squareup.okhttp3:okhttp:4.2.2',
 
             //OkHttp日志打印
-            "okhttp-logging-interceptor" : 'com.squareup.okhttp3:logging-interceptor:4.2.2',
+//            "okhttp-logging-interceptor" : 'com.squareup.okhttp3:logging-interceptor:4.2.2',
 
             //Retrofit库
-            "retrofit"                   : 'com.squareup.retrofit2:retrofit:2.7.0',
+//            "retrofit"                   : 'com.squareup.retrofit2:retrofit:2.7.0',
 
             //Retrofit库适配Gson
-            "retrofit2-converter-gson"   : 'com.squareup.retrofit2:converter-gson:2.7.0',
+//            "retrofit2-converter-gson"   : 'com.squareup.retrofit2:converter-gson:2.7.0',
 
             //要与compiler匹配使用，均使用最新版可以保证兼容
-            "arouter"                    : 'com.alibaba:arouter-api:1.4.1',
+//            "arouter"                    : 'com.alibaba:arouter-api:1.4.1',
 
             //ARouter的跳转注释的依赖
-            "alibaba-arouter-apt"        : 'com.alibaba:arouter-compiler:1.1.4',
+//            "alibaba-arouter-apt"        : 'com.alibaba:arouter-compiler:1.1.4',
 
 //            //鲁班图片压缩
 //            "zibin-Luban"                : 'top.zibin:Luban:1.0.8',

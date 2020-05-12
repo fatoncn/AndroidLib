@@ -105,7 +105,7 @@ fun LifecycleOwner.runOnMainThread(task: () -> Unit) {
     runOnMainThread(Runnable(task))
 }
 
-fun getApplication():Application{
+fun getApp(): Application {
     return ContextUtil.get()
 }
 
@@ -161,6 +161,10 @@ fun <T> LifecycleOwner.observe(live: Live<T>, observer: Observer<T>) {
 
 fun <T> LifecycleOwner.observe(live: LiveData<T>, observer: Observer<T>) {
     live.observe(this, observer)
+}
+
+fun <T> LifecycleOwner.observe(live: LiveData<T>, observer: (T) -> Unit) {
+    live.observe(this, Observer(observer))
 }
 
 fun String?.safeTrim(): String {
