@@ -20,12 +20,12 @@ buildscript {
 //        glide_version = '4.8.0'
 //        nav_version = '1.0.0'
 //        butter_knife_version = '10.0.0'
-        androidx_appcompat_version = '1.1.0-alpha02'
+        androidx_appcompat_version = '1.1.0'
     }
     repositories {
         google()
         jcenter()
-        
+
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.2.1'
@@ -41,7 +41,7 @@ allprojects {
     repositories {
         google()
         jcenter()
-        
+
     }
 }
 

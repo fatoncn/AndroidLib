@@ -27,12 +27,14 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.GenericLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
-import com.cookie.android.util.Task;
+import com.cookie.android.util.async.Task;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -430,7 +432,7 @@ public class StoreLiveData<T> extends LiveValue<T> {
     }
 
     @SuppressLint("RestrictedApi")
-    class LifecycleBoundObserver extends ObserverWrapper implements GenericLifecycleObserver {
+    class LifecycleBoundObserver extends ObserverWrapper implements LifecycleEventObserver {
         @NonNull
         final LifecycleOwner mOwner;
 
@@ -445,7 +447,7 @@ public class StoreLiveData<T> extends LiveValue<T> {
         }
 
         @Override
-        public void onStateChanged(LifecycleOwner source, Lifecycle.Event event) {
+        public void onStateChanged(@NotNull LifecycleOwner source, @NotNull Lifecycle.Event event) {
             if (mOwner.getLifecycle().getCurrentState() == DESTROYED) {
                 removeObserver(mObserver);
                 return;

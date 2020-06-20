@@ -10,7 +10,7 @@ ext {
 //            "recycleview"                : 'androidx.recyclerview:recyclerview:1.1.0-alpha02',
 
             // Architecture components
-            "lifecycle-ext"              : "androidx.lifecycle:lifecycle-extensions:2.0.0",
+            "lifecycle-ext"              : "androidx.lifecycle:lifecycle-extensions:2.1.0",
 //            "lifecycle-runtime"          : "androidx.lifecycle:lifecycle-runtime:2.0.0",
 //            "lifecycle-common-java8"     : "androidx.lifecycle:lifecycle-common-java8:2.0.0",
 //            "lifecycle-compiler"         : "androidx.lifecycle:lifecycle-compiler:2.0.0",

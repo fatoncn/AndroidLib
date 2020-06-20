@@ -10,9 +10,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -124,7 +126,18 @@ public class FileLog {
         return true;
     }
 
-    public static String[] getLatestFileNames(Date target) {
+    public static List<File> getLatestLogFile(Date target) {
+        String[] files = getLatestFileNames(target);
+        ArrayList<File> result = new ArrayList<>();
+        for (String path : files) {
+            File file = new File(LogConfig.getDefaultDir().getPath() + File.separator + path);
+            if (file.exists())
+                result.add(file);
+        }
+        return result;
+    }
+
+    private static String[] getLatestFileNames(Date target) {
         Date[] dates = new Date[10];
         dates[0] = target;
         for (int i = 1; i < dates.length; i++) {
@@ -140,7 +153,7 @@ public class FileLog {
     }
 
     private static String getLogFileName(Date date) {
-        return "ZwztLog_" + DateUtils.getDateFormat(DATE_FORMAT).format(date);
+        return "ZwztLog_" + DateUtils.getDateFormat(DATE_FORMAT).format(date) + ".log";
     }
 
 }

@@ -21,8 +21,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.*
 import com.cookie.android.util.arch.controller.ViewController
+import com.cookie.android.util.async.SafeRunnable
 import com.cookie.android.util.livedata.Live
-import com.cookie.android.util.livedata.observer.RunnableObserver
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -84,14 +84,12 @@ fun runOnMainDelay(task: () -> Unit, delayMs: Int) {
  * @param task
  * @param delayMs
  */
-fun LifecycleOwner.runOnMainDelay(task: Runnable, delayMs: Int) {
-    val liveData = MutableLiveData<Boolean>()
-    liveData.observe(this, RunnableObserver(liveData, task))
-    com.cookie.android.util.runOnMainDelay(Runnable { liveData.postValue(true) }, delayMs)
+fun LifecycleOwner.safeRunOnMainDelay(task: Runnable, delayMs: Int) {
+    runOnMainDelay(SafeRunnable(this,task), delayMs)
 }
 
-fun LifecycleOwner.runOnMainDelay(task: () -> Unit, delayMs: Int) {
-    runOnMainDelay(Runnable(task), delayMs)
+fun LifecycleOwner.safeRunOnMainDelay(task: () -> Unit, delayMs: Int) {
+    safeRunOnMainDelay(Runnable(task), delayMs)
 }
 
 fun LifecycleOwner.runOnMainThread(task: Runnable) {
@@ -110,9 +108,7 @@ fun getApp(): Application {
 }
 
 fun LifecycleOwner.runOnNextLooper(task: Runnable) {
-    val liveData = MutableLiveData<Boolean>()
-    liveData.observe(this, RunnableObserver(liveData, task))
-    liveData.postValue(true)
+    sUIHandler.post(SafeRunnable(this,task))
 }
 
 fun LifecycleOwner.runOnNextLooper(task: () -> Unit) {
@@ -159,6 +155,10 @@ fun <T> LifecycleOwner.observe(live: Live<T>, observer: Observer<T>) {
     live.observe(this, observer)
 }
 
+fun <T> LifecycleOwner.observe(live: Live<T>,  observer: (T) -> Unit) {
+    live.observe(this, Observer(observer))
+}
+
 fun <T> LifecycleOwner.observe(live: LiveData<T>, observer: Observer<T>) {
     live.observe(this, observer)
 }
@@ -176,6 +176,8 @@ fun String?.removeEmpty(): String {
 }
 
 fun resDimenPX(@DimenRes resId: Int) = ContextUtil.get().resources.getDimensionPixelSize(resId)
+
+fun resDimenPXOffset(@DimenRes resId: Int) = ContextUtil.get().resources.getDimensionPixelOffset(resId)
 
 fun resDimenFloatPx(@DimenRes resId: Int) = ContextUtil.get().resources.getDimension(resId)
 

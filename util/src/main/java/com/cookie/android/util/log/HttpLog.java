@@ -58,7 +58,7 @@ class HttpLog {
             }
             isPrinting = true;
         }
-        if (LogConfig.isLogToFile())
+        if (LogConfig.isHttpLogToFile())
             sFileBuffer = new StringBuilder();
         logTopBorder(tag);
 
@@ -91,7 +91,7 @@ class HttpLog {
         }
 
         logBottomBorder(tag);
-        if (LogConfig.isLogToFile() && sFileBuffer != null) {
+        if (LogConfig.isHttpLogToFile() && sFileBuffer != null) {
             FileLog.printFile(sFileBuffer.toString());
             sFileBuffer = null;
         }
@@ -205,7 +205,7 @@ class HttpLog {
     }
 
     private static void appendLogFile(String msg) {
-        if (LogConfig.isLogToFile() && sFileBuffer != null)
+        if (LogConfig.isHttpLogToFile() && sFileBuffer != null)
             sFileBuffer.append(msg).append("\n");
     }
 }

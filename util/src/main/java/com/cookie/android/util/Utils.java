@@ -12,7 +12,6 @@ import android.graphics.Canvas;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -51,7 +50,6 @@ import com.cookie.android.util.gson.GsonCompatible;
 import com.cookie.android.util.gson.IntTypeAdapter;
 import com.cookie.android.util.gson.ListTypeAdapter;
 import com.cookie.android.util.gson.LongTypeAdapter;
-import com.cookie.android.util.gson.StringTypeAdapter;
 
 /**
  * 对象util类
@@ -66,11 +64,11 @@ public class Utils {
         return Objects.equals(a, b);
     }
 
-    public static Gson gson() {
-        return gsonBuilder().create();
+    public static Gson compatGson() {
+        return compatGsonBuilder().create();
     }
 
-    public static GsonBuilder gsonBuilder() {
+    public static GsonBuilder compatGsonBuilder() {
         return new GsonBuilder()
                 .registerTypeAdapter(String.class, new StringTypeAdapter())
                 .registerTypeAdapter(Long.class, new LongTypeAdapter())
@@ -159,7 +157,7 @@ public class Utils {
         if (json == null)
             return;
         if (gson == null)
-            gson = gson();
+            gson = compatGson();
         try {
             for (String key : json.keySet()) {
                 try {
@@ -261,7 +259,7 @@ public class Utils {
      * @param delayMs
      */
     public static void runOnMainDelay(@NonNull LifecycleOwner owner, Runnable task, int delayMs) {
-        UtilExtKt.runOnMainDelay(owner, task, delayMs);
+        UtilExtKt.safeRunOnMainDelay(owner, task, delayMs);
     }
 
     /**

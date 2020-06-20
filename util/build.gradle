@@ -7,3 +7,17 @@ dependencies {
     implementation rootProject.ext.dependencies['gson-lib']
     implementation rootProject.ext.dependencies["lifecycle-ext"]
 }
+
+task cookieAndroidSourceJar(type: Jar,dependsOn: ['build']) {
+    archiveName = 'cookie-android-lib-source.jar'
+    getMainSpec().from file("src/main/java")
+    getMainSpec().into("source")
+    getRootSpec().from file("build/tmp/kotlin-classes/release")
+    getRootSpec().from file("build/intermediates/javac/release/compileReleaseJavaWithJavac/classes")
+
+    //去掉不要的类
+    getRootSpec().exclude('**/BuildConfig.class')
+    getRootSpec().exclude('**/BuildConfig\$*.class')
+    getRootSpec().exclude('**/R.class')
+    getRootSpec().exclude('**/R\$*.class')
+}

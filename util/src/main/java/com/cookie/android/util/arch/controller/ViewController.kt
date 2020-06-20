@@ -3,10 +3,8 @@ package com.cookie.android.util.arch.controller
 import android.content.Context
 import android.os.Bundle
 import android.util.SparseBooleanArray
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
@@ -14,13 +12,10 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.*
 import androidx.lifecycle.Lifecycle.Event
-import com.cookie.android.util.livedata.Live
+import com.cookie.android.util.*
+import com.cookie.android.util.arch.view.ViewElement
 import com.cookie.android.util.livedata.StoreLiveData
 import com.cookie.android.util.livedata.observer.SafeObserver
-import com.cookie.android.util.ContextUtil
-import com.cookie.android.util.getViewModel
-import com.cookie.android.util.observe
-import com.cookie.android.util.runOnMainDelay
 
 /**
  * 替代Fragment的控制器方案，将Fragment的View层抽离出来，依赖于Activity
@@ -35,15 +30,10 @@ import com.cookie.android.util.runOnMainDelay
  */
 @Suppress("LeakingThis")
 abstract class ViewController @JvmOverloads
-constructor(val activity: FragmentActivity, @LayoutRes val layoutResId: Int, controllerId: String = ""
-            , protected val parentOwner: LifecycleOwner = activity)
-    : LifecycleOwner, LifecycleObserver {
+constructor(protected val parent: ViewElement, root: View, controllerId: String = "")
+    : LifecycleOwner, LifecycleObserver, ViewElement {
 
-    constructor(controller: ViewController, @LayoutRes layoutResId: Int, controllerId: String = "")
-            : this(controller.activity, layoutResId, controllerId, controller)
-
-    constructor(fragment: Fragment, @LayoutRes layoutResId: Int, controllerId: String = "")
-            : this(fragment.activity!!, layoutResId, controllerId, fragment)
+    constructor(parent: ViewElement, @LayoutRes layoutResId: Int, controllerId: String) : this(parent, layoutResId.inflate(), controllerId)
 
     /**
      * 与Fragment的关联值，默认为类名，若该ViewController在Activity中存在多个相同的实例，则需要在
@@ -53,7 +43,7 @@ constructor(val activity: FragmentActivity, @LayoutRes val layoutResId: Int, con
     /**
      * 该Fragment用于绑定ViewModel、保存状态
      */
-    private val storeFragment: DelegateFragment
+    private val delegateFragment: DelegateFragment
     /**
      * ViewController根布局
      */
@@ -66,15 +56,18 @@ constructor(val activity: FragmentActivity, @LayoutRes val layoutResId: Int, con
      * 状态是否保存
      */
     private val stateSaved: Boolean
+
     /**
      * 用于保持attach后与parentOwner（默认为Activity）生命周期同步
      */
-    private val mLifecycleSyncObserver: LifecycleObserver = GenericLifecycleObserver { source, _ ->
-        if (parentOwner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
-            parentOwner.lifecycle.removeObserver(this)
+    private val mLifecycleSyncObserver: LifecycleObserver = LifecycleEventObserver { source, _ ->
+        if (parent.lifecycle.currentState == Lifecycle.State.DESTROYED) {
+            parent.lifecycle.removeObserver(this)
         }
         lifecycle.markState(source.lifecycle.currentState)
     }
+
+    val activity = parent.getRootActivity()
 
     private var maxAppearLevel = 3
 
@@ -132,27 +125,23 @@ constructor(val activity: FragmentActivity, @LayoutRes val layoutResId: Int, con
     fun getAppearLive(): LiveData<Boolean> = hasAppear
 
     init {
-        val fm = when (parentOwner) {
-            is ViewController -> parentOwner.getChildSupportFragmentManager()
-            is Fragment -> parentOwner.childFragmentManager
-            else -> activity.supportFragmentManager
-        }
+        val parentFM = parent.getChildFragmentManager()
         /**
          * 先尝试取回绑定的Fragment，若为空则是第一次创建
          */
-        var old = fm.findFragmentByTag(tag)
+        var old = parentFM.findFragmentByTag(tag)
         if (old !is DelegateFragment) {
             old = DelegateFragment()
             old.arguments = Bundle()
             stateSaved = false
-            fm.beginTransaction().add(old, tag).commitNowAllowingStateLoss()
+            parentFM.beginTransaction().add(old, tag).commitNowAllowingStateLoss()
         } else {
             stateSaved = true
         }
-        storeFragment = old
+        delegateFragment = old
         //让Fragment的保存状态回调能够响应到ViewController中
-        storeFragment.viewController = this
-        root = LayoutInflater.from(activity).inflate(layoutResId, FrameLayout(activity), false)
+        delegateFragment.viewController = this
+        this.root = root
         appear(APPEAR_LEVEL_SHOW)
     }
 
@@ -161,7 +150,7 @@ constructor(val activity: FragmentActivity, @LayoutRes val layoutResId: Int, con
      */
     private val lifecycle: LifecycleRegistry by lazy {
         val registry = LifecycleRegistry(this)
-        registry.addObserver(GenericLifecycleObserver { _, event ->
+        registry.addObserver(LifecycleEventObserver { _, event ->
             when (event) {
                 Event.ON_CREATE -> {
                     onCreate()
@@ -220,13 +209,13 @@ constructor(val activity: FragmentActivity, @LayoutRes val layoutResId: Int, con
     }
 
     init {
-        if (parentOwner is ViewController)
-            observe(parentOwner.hasAppear, Observer {
+        if (parent is ViewController)
+            observe(parent.hasAppear) {
                 if (it)
                     appear(APPEAR_LEVEL_PARENT)
                 else
                     disappear(APPEAR_LEVEL_PARENT)
-            })
+            }
         else
             appear(APPEAR_LEVEL_PARENT)
     }
@@ -236,12 +225,16 @@ constructor(val activity: FragmentActivity, @LayoutRes val layoutResId: Int, con
      * 开始view的添加与绘制
      * 这个方法重复调用会被忽略
      */
-    fun attach(container: ViewGroup): ViewController {
+    fun attach(container: ViewGroup? = null): ViewController {
         if (this.container == null) {
-            container.addView(root)
-            this.container = container
+            if (container != null) {
+                container.addView(root)
+                this.container = container
+            } else if (root.parent is ViewGroup) {
+                this.container = root.parent as ViewGroup
+            }
             //同步ViewController生命周期到parentOwner当前状态
-            lifecycle.markState(parentOwner.lifecycle.currentState)
+            lifecycle.markState(parent.lifecycle.currentState)
             activity.lifecycle.addObserver(mLifecycleSyncObserver)
             appear(APPEAR_LEVEL_ATTACH)
         }
@@ -262,15 +255,20 @@ constructor(val activity: FragmentActivity, @LayoutRes val layoutResId: Int, con
     /**
      * 用户嵌套controller的情况
      */
-    fun getChildSupportFragmentManager(): FragmentManager {
-        return storeFragment.childFragmentManager
+
+    override fun getChildFragmentManager(): FragmentManager {
+        return delegateFragment.childFragmentManager
+    }
+
+    override fun getRootActivity(): FragmentActivity {
+        return parent.getRootActivity()
     }
 
     /**
      * 异步attach，attach会延时执行
      */
     fun attachAsync(container: ViewGroup, ms: Int): ViewController {
-        activity.runOnMainDelay(Runnable {
+        activity.safeRunOnMainDelay(Runnable {
             attach(container)
         }, ms)
         return this
@@ -292,14 +290,14 @@ constructor(val activity: FragmentActivity, @LayoutRes val layoutResId: Int, con
 
     override fun getLifecycle(): Lifecycle = lifecycle
 
-    fun <T : ViewModel> getViewModel(clazz: Class<T>): T = storeFragment.getViewModel(clazz)
+    fun <T : ViewModel> getViewModel(clazz: Class<T>): T = delegateFragment.getViewModel(clazz)
 
     fun <T : ViewModel> getActivityViewModel(clazz: Class<T>): T = activity.getViewModel(clazz)
 
     fun <T : ViewModel> getParentViewModel(clazz: Class<T>): T {
-        return when (parentOwner) {
-            is ViewController -> parentOwner.getViewModel(clazz)
-            is Fragment -> parentOwner.getViewModel(clazz)
+        return when (parent) {
+            is ViewController -> (parent as ViewController).getViewModel(clazz)
+            is Fragment -> (parent as Fragment).getViewModel(clazz)
             else -> getActivityViewModel(clazz)
         }
     }
@@ -374,7 +372,7 @@ constructor(val activity: FragmentActivity, @LayoutRes val layoutResId: Int, con
     }
 
     fun getArguments(): Bundle {
-        var args = storeFragment.arguments
+        var args = delegateFragment.arguments
         if (args == null) {
             args = Bundle()
         }

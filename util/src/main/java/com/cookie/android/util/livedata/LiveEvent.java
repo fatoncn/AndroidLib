@@ -5,16 +5,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.GenericLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 
+import com.cookie.android.util.UtilExtKt;
+
+import org.jetbrains.annotations.NotNull;
+
 import static androidx.lifecycle.Lifecycle.State.DESTROYED;
 import static androidx.lifecycle.Lifecycle.State.STARTED;
 import static com.cookie.android.util.UtilExtKt.isMainThread;
-import static com.cookie.android.util.UtilExtKt.runOnMainDelay;
 
 /**
  * 改动源码后的LiveData，用于事件驱动（如点击事件）的LiveData，如果得到了非空值，则进行通知，并在通知完成后置空。
@@ -80,7 +83,7 @@ public class LiveEvent<T> extends BaseLive<T> {
         }
     }
 
-    class LifecycleBoundObserver extends ObserverWrapper implements GenericLifecycleObserver {
+    class LifecycleBoundObserver extends ObserverWrapper implements LifecycleEventObserver {
         @NonNull
         final LifecycleOwner mOwner;
 
@@ -95,7 +98,7 @@ public class LiveEvent<T> extends BaseLive<T> {
         }
 
         @Override
-        public void onStateChanged(LifecycleOwner source, Lifecycle.Event event) {
+        public void onStateChanged(@NotNull LifecycleOwner source, @NotNull Lifecycle.Event event) {
             if (mOwner.getLifecycle().getCurrentState() == DESTROYED) {
                 removeObserver(mObserver);
                 return;
@@ -148,7 +151,7 @@ public class LiveEvent<T> extends BaseLive<T> {
      */
     private void postEvent(@Nullable T event, boolean sticky) {
         if (event != null)
-            runOnMainDelay(new Runnable() {
+            UtilExtKt.runOnMainDelay(new Runnable() {
                 @Override
                 public void run() {
                     if (sticky)
@@ -276,7 +279,7 @@ public class LiveEvent<T> extends BaseLive<T> {
     }
 
     public void disable(int ms) {
-        runOnMainDelay(new DelayRunnable(), ms);
+        UtilExtKt.runOnMainDelay(new DelayRunnable(), ms);
     }
 
     /**

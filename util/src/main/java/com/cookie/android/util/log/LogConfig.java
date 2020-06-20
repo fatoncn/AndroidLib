@@ -1,14 +1,17 @@
 package com.cookie.android.util.log;
 
 
+import android.os.Environment;
+
+import com.cookie.android.util.LibConfig;
 import com.cookie.android.util.Logger;
 
 import java.io.File;
 
-class LogConfig {
+public class LogConfig {
 
     static final String DEFAULT_MESSAGE = "execute";
-    static final String LINE_SEPARATOR = System.getProperty("line.separator")==null?"":System.getProperty("line.separator");
+    static final String LINE_SEPARATOR = System.getProperty("line.separator") == null ? "" : System.getProperty("line.separator");
     static final String NULL_TIPS = "Log with null object";
     static final String PARAM = "Param";
     static final String NULL = "null";
@@ -24,23 +27,36 @@ class LogConfig {
     public static final int JSON = 0x7;
     public static final int HTTP = 0x8;
 
-    private static boolean isLogToFile = false;
+    private static boolean isHttpLogToFile = false;
 
-    public static void setLogToFile(boolean isLogToFile) {
-        LogConfig.isLogToFile = isLogToFile;
+    public static void setHttpLogToFile(boolean isLogToFile) {
+        LogConfig.isHttpLogToFile = isLogToFile;
     }
 
-    static boolean isLogToFile() {
-        return isLogToFile;
+    static boolean isHttpLogToFile() {
+        return isHttpLogToFile;
     }
 
     private static File sDefaultLogDir;
 
-    public static void initDefaultDir(File dir) {
+    public static void initLogDirName(String dirName) {
+        if (dirName == null || dirName.isEmpty())
+            return;
+        File systemDir = LibConfig.INSTANCE.getApp().getExternalFilesDir(null);
+        if (systemDir != null) {
+            File dir = new File(systemDir.getPath() + "/" + dirName + "/");
+            dir.mkdirs();
+            sDefaultLogDir = dir;
+        }
+    }
+
+    public static void initLogDir(File dir) {
         sDefaultLogDir = dir;
     }
 
     public static File getDefaultDir() {
+        if (sDefaultLogDir == null)
+            initLogDirName("cookie_log");
         return sDefaultLogDir;
     }
 
@@ -60,7 +76,7 @@ class LogConfig {
         } else {
             printSub(type, tag, msg);
         }
-        if (isLogToFile) {
+        if (isHttpLogToFile) {
             FileLog.printFile(msg);
         }
     }
