@@ -1,6 +1,5 @@
 package com.cookie.android.util.livedata
 
-interface ValuePoster<T> {
-    fun postValue(value: T)
+interface LiveValue<T> : Live<T> {
     val value:T
 }

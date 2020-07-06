@@ -14,7 +14,7 @@ import androidx.lifecycle.*
 import androidx.lifecycle.Lifecycle.Event
 import com.cookie.android.util.*
 import com.cookie.android.util.arch.view.ViewElement
-import com.cookie.android.util.livedata.StoreLiveData
+import com.cookie.android.util.livedata.Store
 import com.cookie.android.util.livedata.observer.SafeObserver
 
 /**
@@ -30,10 +30,9 @@ import com.cookie.android.util.livedata.observer.SafeObserver
  */
 @Suppress("LeakingThis")
 abstract class ViewController @JvmOverloads
-constructor(protected val parent: ViewElement, root: View, controllerId: String = "")
-    : LifecycleOwner, LifecycleObserver, ViewElement {
+constructor(protected val parent: ViewElement, root: View, controllerId: String = "") : LifecycleOwner, LifecycleObserver, ViewElement {
 
-    constructor(parent: ViewElement, @LayoutRes layoutResId: Int, controllerId: String) : this(parent, layoutResId.inflate(), controllerId)
+    constructor(parent: ViewElement, @LayoutRes layoutResId: Int, controllerId: String) : this(parent, layoutResId.inflate(parent.getRootActivity()), controllerId)
 
     /**
      * 与Fragment的关联值，默认为类名，若该ViewController在Activity中存在多个相同的实例，则需要在
@@ -64,7 +63,7 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
         if (parent.lifecycle.currentState == Lifecycle.State.DESTROYED) {
             parent.lifecycle.removeObserver(this)
         }
-        lifecycle.markState(source.lifecycle.currentState)
+        lifecycle.currentState = source.lifecycle.currentState
     }
 
     val activity = parent.getRootActivity()
@@ -82,7 +81,7 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
     /**
      * 界面中的显示层级
      */
-    private val appearLevel = StoreLiveData(APPEAR_LEVEL_PARENT)
+    private val appearLevel = Store(APPEAR_LEVEL_PARENT)
 
     /**
      * 各层级的显示情况
@@ -148,37 +147,7 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
     /**
      * ViewController自己的生命周期
      */
-    private val lifecycle: LifecycleRegistry by lazy {
-        val registry = LifecycleRegistry(this)
-        registry.addObserver(LifecycleEventObserver { _, event ->
-            when (event) {
-                Event.ON_CREATE -> {
-                    onCreate()
-                    if (!stateSaved)
-                        onInitCreate()
-                    onActivityCreated()
-                    onViewCreated()
-                }
-                Event.ON_DESTROY -> {
-                    onDestroyView()
-                    onDestroy()
-                }
-                Event.ON_START -> {
-                    appear(APPEAR_LEVEL_START)
-                    onStart()
-                }
-                Event.ON_RESUME -> onResume()
-                Event.ON_PAUSE -> onPause()
-                Event.ON_STOP -> {
-                    disappear(APPEAR_LEVEL_START)
-                    onStop()
-                }
-                else -> {
-                }
-            }
-        })
-        registry
-    }
+    private var lifecycle = resetLifecycle()
 
     internal fun disappear(level: Int) {
         appearValue.put(level, false)
@@ -233,9 +202,11 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
             } else if (root.parent is ViewGroup) {
                 this.container = root.parent as ViewGroup
             }
+            if (lifecycle.currentState == Lifecycle.State.DESTROYED)
+                lifecycle = resetLifecycle()
             //同步ViewController生命周期到parentOwner当前状态
-            lifecycle.markState(parent.lifecycle.currentState)
-            activity.lifecycle.addObserver(mLifecycleSyncObserver)
+            lifecycle.currentState = parent.lifecycle.currentState
+            parent.lifecycle.addObserver(mLifecycleSyncObserver)
             appear(APPEAR_LEVEL_ATTACH)
         }
         return this
@@ -268,7 +239,7 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
      * 异步attach，attach会延时执行
      */
     fun attachAsync(container: ViewGroup, ms: Int): ViewController {
-        activity.safeRunOnMainDelay(Runnable {
+        parent.safeRunOnMainDelay(Runnable {
             attach(container)
         }, ms)
         return this
@@ -278,14 +249,44 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
      * 将ViewController从它的父view移出，随后会执行view层的销毁并清理自身资源
      */
     fun detach() {
-        activity.lifecycle.removeObserver(mLifecycleSyncObserver)
         container?.removeView(root)
         container = null
-        //同步ViewController生命周期至销毁状态
-        //FIXME:这边需要验证DESTROYED状态与INITIALIZED状态的差异
-        lifecycle.markState(Lifecycle.State.INITIALIZED)
-//        lifecycle.markState(Lifecycle.State.DESTROYED)
+        //同步ViewController生命周期至destroyed
+        parent.lifecycle.removeObserver(mLifecycleSyncObserver)
+        lifecycle.currentState = Lifecycle.State.DESTROYED
         disappear(APPEAR_LEVEL_ATTACH)
+    }
+
+    private fun resetLifecycle(): LifecycleRegistry {
+        val registry = LifecycleRegistry(this)
+        registry.addObserver(LifecycleEventObserver { owner, event ->
+            when (event) {
+                Event.ON_CREATE -> {
+                    onCreate()
+                    if (!stateSaved)
+                        onInitCreate()
+                    onActivityCreated()
+                    onViewCreated()
+                }
+                Event.ON_DESTROY -> {
+                    onDestroyView()
+                    onDestroy()
+                }
+                Event.ON_START -> {
+                    appear(APPEAR_LEVEL_START)
+                    onStart()
+                }
+                Event.ON_RESUME -> onResume()
+                Event.ON_PAUSE -> onPause()
+                Event.ON_STOP -> {
+                    disappear(APPEAR_LEVEL_START)
+                    onStop()
+                }
+                else -> {
+                }
+            }
+        })
+        return registry
     }
 
     override fun getLifecycle(): Lifecycle = lifecycle
@@ -296,7 +297,7 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
 
     fun <T : ViewModel> getParentViewModel(clazz: Class<T>): T {
         return when (parent) {
-            is ViewController -> (parent as ViewController).getViewModel(clazz)
+            is ViewController -> parent.getViewModel(clazz)
             is Fragment -> (parent as Fragment).getViewModel(clazz)
             else -> getActivityViewModel(clazz)
         }

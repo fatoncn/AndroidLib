@@ -1,12 +1,13 @@
 package com.cookie.android.util
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import com.cookie.android.util.LibConfig
 
-fun Int.inflate(): View {
-    return LayoutInflater.from(LibConfig.app).inflate(this,FrameLayout(LibConfig.app),false)
+fun Int.inflate(context:Context = LibConfig.app): View {
+    return LayoutInflater.from(LibConfig.app).inflate(this,FrameLayout(context),false)
 }
 
 fun View.show(){

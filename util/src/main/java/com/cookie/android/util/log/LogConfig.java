@@ -42,7 +42,7 @@ public class LogConfig {
     public static void initLogDirName(String dirName) {
         if (dirName == null || dirName.isEmpty())
             return;
-        File systemDir = LibConfig.INSTANCE.getApp().getExternalFilesDir(null);
+        File systemDir = LibConfig.INSTANCE.getApp().getFilesDir();
         if (systemDir != null) {
             File dir = new File(systemDir.getPath() + "/" + dirName + "/");
             dir.mkdirs();

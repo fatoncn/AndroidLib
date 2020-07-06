@@ -1,26 +1,26 @@
 package com.cookie.android.util.livedata.observer
 
 import androidx.lifecycle.LiveData
-import com.cookie.android.util.livedata.StoreLiveData
+import com.cookie.android.util.livedata.Store
 
 abstract class OnceObserver<T> : SafeObserver<T> {
 
     private val mLiveData: LiveData<out T>?
-    private val mLiveData0: StoreLiveData<out T>?
+    private val mM0: Store<out T>?
 
     constructor(liveData: LiveData<out T>) {
         mLiveData = liveData
-        mLiveData0 = null
+        mM0 = null
     }
 
-    constructor(liveData: StoreLiveData<out T>) {
+    constructor(liveData: Store<out T>) {
         mLiveData = null
-        mLiveData0 = liveData
+        mM0 = liveData
     }
 
     override fun onSafeChanged(t: T) {
         mLiveData?.removeObserver(this)
-        mLiveData0?.removeObserver(this)
+        mM0?.removeObserver(this)
         onGet(t)
     }
 

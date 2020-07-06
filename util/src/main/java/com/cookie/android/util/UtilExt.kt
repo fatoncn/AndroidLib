@@ -155,6 +155,15 @@ fun <T> LifecycleOwner.observe(live: Live<T>, observer: Observer<T>) {
     live.observe(this, observer)
 }
 
+fun <T> LifecycleOwner.observeForever(live: Live<T>,  observer: (T) -> Unit) {
+    live.observeForever(this, Observer(observer))
+}
+
+
+fun <T> LifecycleOwner.observeForever(live: Live<T>, observer: Observer<T>) {
+    live.observeForever(this, observer)
+}
+
 fun <T> LifecycleOwner.observe(live: Live<T>,  observer: (T) -> Unit) {
     live.observe(this, Observer(observer))
 }

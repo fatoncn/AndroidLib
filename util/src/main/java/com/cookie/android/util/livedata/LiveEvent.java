@@ -28,7 +28,7 @@ import static com.cookie.android.util.UtilExtKt.isMainThread;
  * Author: ZhangLingfei
  * Date : 2019/4/26 0026
  */
-public class LiveEvent<T> extends BaseLive<T> {
+public class LiveEvent<T> extends LivePosterImpl<T> {
 
     private ConcurrentHashMap<ObserverWrapper, Object> mEvents = new ConcurrentHashMap<>();
     private ConcurrentHashMap<ObserverWrapper, Boolean> mStickyMap = new ConcurrentHashMap<>();
@@ -83,7 +83,19 @@ public class LiveEvent<T> extends BaseLive<T> {
         }
     }
 
-    class LifecycleBoundObserver extends ObserverWrapper implements LifecycleEventObserver {
+    private class AlwaysActiveObserver extends LifecycleBoundObserver {
+
+        AlwaysActiveObserver(@NonNull LifecycleOwner owner, Observer<? super T> observer) {
+            super(owner, observer);
+        }
+
+        @Override
+        boolean shouldBeActive() {
+            return true;
+        }
+    }
+
+    private class LifecycleBoundObserver extends ObserverWrapper implements LifecycleEventObserver {
         @NonNull
         final LifecycleOwner mOwner;
 
@@ -186,7 +198,7 @@ public class LiveEvent<T> extends BaseLive<T> {
     @MainThread
     public void observeForever(@NonNull Observer<? super T> observer) {
         assertMainThread("observeForever");
-        AlwaysActiveObserver wrapper = new AlwaysActiveObserver(observer);
+        AlwaysActiveAndExistObserver wrapper = new AlwaysActiveAndExistObserver(observer);
         ObserverWrapper existing = mObservers.putIfAbsent(observer, wrapper);
         if (existing != null && LifecycleBoundObserver.class.isInstance(existing)) {
             throw new IllegalArgumentException("Cannot add the same observer"
@@ -199,9 +211,9 @@ public class LiveEvent<T> extends BaseLive<T> {
         wrapper.activeStateChanged(true);
     }
 
-    private class AlwaysActiveObserver extends ObserverWrapper {
+    private class AlwaysActiveAndExistObserver extends ObserverWrapper {
 
-        AlwaysActiveObserver(Observer<? super T> observer) {
+        AlwaysActiveAndExistObserver(Observer<? super T> observer) {
             super(observer);
         }
 
@@ -240,6 +252,27 @@ public class LiveEvent<T> extends BaseLive<T> {
         }
         mEvents.put(wrapper, NOT_SET);
         mStickyMap.put(wrapper, sticky);
+        owner.getLifecycle().addObserver(wrapper);
+    }
+
+    @Override
+    @MainThread
+    public void observeForever(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer) {
+        assertMainThread("observe");
+        if (owner.getLifecycle().getCurrentState() == DESTROYED) {
+            return;
+        }
+        AlwaysActiveObserver wrapper = new AlwaysActiveObserver(owner, observer);
+        ObserverWrapper existing = mObservers.putIfAbsent(observer, wrapper);
+        if (existing != null && !existing.isAttachedTo(owner)) {
+            throw new IllegalArgumentException("Cannot add the same observer"
+                    + " with different lifecycles");
+        }
+        if (existing != null) {
+            return;
+        }
+        mEvents.put(wrapper, NOT_SET);
+        mStickyMap.put(wrapper, false);
         owner.getLifecycle().addObserver(wrapper);
     }
 

@@ -9,7 +9,7 @@ import androidx.lifecycle.Observer
  * Date : 2019/8/12 0012
  */
 internal class SourceCompat<V>(private val mLiveData: LiveData<V>, val mObserver: Observer<in V>) : Observer<V> {
-    var mVersion = BaseLive.START_VERSION
+    var mVersion = LivePosterImpl.START_VERSION
 
     fun plug() {
         mLiveData.observeForever(this)

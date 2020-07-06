@@ -1,5 +1,4 @@
 package com.cookie.android.util.arch.controller
-
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
@@ -53,4 +52,3 @@ abstract class ViewControllerPagerAdapter(private val needAttach: Boolean = true
         return "android:switcher:$viewId:$id"
     }
 }
-
