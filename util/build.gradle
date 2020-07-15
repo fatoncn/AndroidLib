@@ -6,6 +6,11 @@ dependencies {
     //json解析框架
     implementation rootProject.ext.dependencies['gson-lib']
     implementation rootProject.ext.dependencies["lifecycle-ext"]
+    implementation rootProject.ext.dependencies["core-ktx"]
+    implementation rootProject.ext.dependencies["kotlin-stdlib-jdk7"]
+    implementation rootProject.ext.dependencies["coroutines-core"]
+    implementation rootProject.ext.dependencies["coroutines-android"]
+
 }
 
 task cookieAndroidSourceJar(type: Jar,dependsOn: ['build']) {

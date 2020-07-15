@@ -28,6 +28,7 @@ import static com.cookie.android.util.UtilExtKt.isMainThread;
  * Author: ZhangLingfei
  * Date : 2019/4/26 0026
  */
+//FIXME:消息队列的处理还有待改善
 public class LiveEvent<T> extends LivePosterImpl<T> {
 
     private ConcurrentHashMap<ObserverWrapper, Object> mEvents = new ConcurrentHashMap<>();

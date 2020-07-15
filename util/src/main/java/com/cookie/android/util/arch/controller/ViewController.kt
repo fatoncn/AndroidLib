@@ -308,7 +308,7 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
     fun getString(@StringRes resId: Int): String = getContext().getString(resId)
 
     fun show(): ViewController {
-        if (!isShow()) {
+        if (!appearValue[APPEAR_LEVEL_SHOW]) {
             appear(APPEAR_LEVEL_SHOW)
             root.visibility = View.VISIBLE
         }
@@ -316,7 +316,7 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
     }
 
     fun hide(): ViewController {
-        if (isShow()) {
+        if (appearValue[APPEAR_LEVEL_SHOW]) {
             disappear(APPEAR_LEVEL_SHOW)
             root.visibility = View.INVISIBLE
         }

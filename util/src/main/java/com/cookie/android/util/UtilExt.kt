@@ -140,11 +140,11 @@ fun Activity.activityLabel(): String {
 }
 
 fun <T : ViewModel> FragmentActivity.getViewModel(clazz: Class<T>): T {
-    return ViewModelProviders.of(this).get(clazz)
+    return ViewModelProvider(this).get(clazz)
 }
 
 fun <T : ViewModel> Fragment.getViewModel(clazz: Class<T>): T {
-    return ViewModelProviders.of(this).get(clazz)
+    return ViewModelProvider(this).get(clazz)
 }
 
 fun <T : View> ViewController.findViewById(@IdRes resId: Int): T {
@@ -202,12 +202,12 @@ fun inflate(@LayoutRes resId: Int, container: ViewGroup = FrameLayout(ContextUti
 
 fun inflate(@LayoutRes resId: Int): View = LayoutInflater.from(ContextUtil.get()).inflate(resId, FrameLayout(ContextUtil.get()), false)
 
-fun String?.safeInt(): Int {
-    return FormatUtils.toInt(this)
+fun String?.safeInt(default:Int = 0): Int {
+    return FormatUtils.toInt(this,default)
 }
 
-fun String?.safeLong(): Long {
-    return FormatUtils.toLong(this)
+fun String?.safeLong(default:Long = 0L): Long {
+    return FormatUtils.toLong(this,default)
 }
 
 fun screenWidth(): Int {

@@ -8,7 +8,7 @@ import com.cookie.android.util.async.Task
  *
  * @param <T>
 </T> */
-class Store<T>:StoreImpl<T>{
+open class Store<T>:StoreImpl<T>{
     constructor() : super()
     constructor(default: T?) : super(default)
 
