@@ -29,7 +29,7 @@ import static com.cookie.android.util.UtilExtKt.isMainThread;
  * Date : 2019/4/26 0026
  */
 //FIXME:消息队列的处理还有待改善
-public class LiveEvent<T> extends LivePosterImpl<T> {
+public class LiveEvent<T> extends LivePosterImpl<T> implements LiveSticky<T> {
 
     private ConcurrentHashMap<ObserverWrapper, Object> mEvents = new ConcurrentHashMap<>();
     private ConcurrentHashMap<ObserverWrapper, Boolean> mStickyMap = new ConcurrentHashMap<>();
@@ -198,6 +198,17 @@ public class LiveEvent<T> extends LivePosterImpl<T> {
     @Override
     @MainThread
     public void observeForever(@NonNull Observer<? super T> observer) {
+        observeForever(observer, false);
+    }
+
+    @Override
+    @MainThread
+    public void observeStickyForever(@NonNull Observer<? super T> observer) {
+        observeForever(observer, true);
+    }
+
+    @MainThread
+    private void observeForever(@NonNull Observer<? super T> observer, boolean sticky) {
         assertMainThread("observeForever");
         AlwaysActiveAndExistObserver wrapper = new AlwaysActiveAndExistObserver(observer);
         ObserverWrapper existing = mObservers.putIfAbsent(observer, wrapper);
@@ -209,6 +220,7 @@ public class LiveEvent<T> extends LivePosterImpl<T> {
             return;
         }
         mEvents.put(wrapper, NOT_SET);
+        mStickyMap.put(wrapper, sticky);
         wrapper.activeStateChanged(true);
     }
 
@@ -258,7 +270,18 @@ public class LiveEvent<T> extends LivePosterImpl<T> {
 
     @Override
     @MainThread
+    public void observeStickyForever(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer) {
+        observeForever(owner, observer, true);
+    }
+
+    @Override
+    @MainThread
     public void observeForever(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer) {
+        observeForever(owner, observer, false);
+    }
+
+    @MainThread
+    private void observeForever(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer, boolean sticky) {
         assertMainThread("observe");
         if (owner.getLifecycle().getCurrentState() == DESTROYED) {
             return;
@@ -273,7 +296,7 @@ public class LiveEvent<T> extends LivePosterImpl<T> {
             return;
         }
         mEvents.put(wrapper, NOT_SET);
-        mStickyMap.put(wrapper, false);
+        mStickyMap.put(wrapper, sticky);
         owner.getLifecycle().addObserver(wrapper);
     }
 

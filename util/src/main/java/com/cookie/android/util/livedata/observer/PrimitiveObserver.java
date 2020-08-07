@@ -15,8 +15,8 @@ public abstract class PrimitiveObserver<T> implements Observer<T> {
 
     private final boolean primitiveValue;//当基本类型值发生变化时才会被通知
     private final boolean useDefaultValue;//针对基本类型泛型的null值使用对应默认值
-    private Object oldValue = NOT_SET;
-    private static final Object NOT_SET = new Object();
+    protected Object oldValue = NOT_SET;
+    protected static final Object NOT_SET = new Object();
 
     public PrimitiveObserver() {
         this(false);

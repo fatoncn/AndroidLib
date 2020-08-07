@@ -14,6 +14,7 @@ import androidx.lifecycle.*
 import androidx.lifecycle.Lifecycle.Event
 import com.cookie.android.util.*
 import com.cookie.android.util.arch.view.ViewElement
+import com.cookie.android.util.livedata.LiveValue
 import com.cookie.android.util.livedata.Store
 import com.cookie.android.util.livedata.observer.SafeObserver
 
@@ -88,9 +89,9 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
      */
     private val appearValue = SparseBooleanArray()
 
-    private val hasAppear = MutableLiveData<Boolean>()
+    private val hasAppear = Store<Boolean>()
 
-    private val isShow = MutableLiveData<Boolean>()
+    private val isShow = Store<Boolean>()
 
     internal fun getAppearLevel() = appearLevel.value
 
@@ -117,11 +118,11 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
      */
     fun isShow() = appearLevel.value >= APPEAR_LEVEL_SHOW
 
-    fun isShowLive(): LiveData<Boolean> = isShow
+    fun isShowLive(): LiveValue<Boolean> = isShow
 
     fun hasAppear(): Boolean = hasAppear.value ?: false
 
-    fun getAppearLive(): LiveData<Boolean> = hasAppear
+    fun getAppearLive(): LiveValue<Boolean> = hasAppear
 
     init {
         val parentFM = parent.getChildFragmentManager()
@@ -319,6 +320,14 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
         if (appearValue[APPEAR_LEVEL_SHOW]) {
             disappear(APPEAR_LEVEL_SHOW)
             root.visibility = View.INVISIBLE
+        }
+        return this
+    }
+
+    fun gone(): ViewController {
+        if (appearValue[APPEAR_LEVEL_SHOW]) {
+            disappear(APPEAR_LEVEL_SHOW)
+            root.visibility = View.GONE
         }
         return this
     }
