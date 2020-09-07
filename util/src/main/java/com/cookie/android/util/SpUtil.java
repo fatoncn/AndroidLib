@@ -16,6 +16,10 @@ import java.lang.reflect.Method;
 public class SpUtil {
 
 
+    public static <T> T getSp(String fileName, @NonNull String key, T defaultObject) {
+        return getSp(ContextUtil.get(), fileName, key, defaultObject);
+    }
+
     /**
      * 根据传入的键获取内容
      *
@@ -24,8 +28,8 @@ public class SpUtil {
      * @param defaultObject 默认  返回值
      * @return 返回获取到的内容
      */
-    public <T> T getSp(String fileName, @NonNull String key, T defaultObject) {
-        SharedPreferences sp = ContextUtil.get().getSharedPreferences(fileName, Context.MODE_PRIVATE);
+    public static <T> T getSp(Context context, String fileName, @NonNull String key, T defaultObject) {
+        SharedPreferences sp = context.getSharedPreferences(fileName, Context.MODE_PRIVATE);
 
         if (defaultObject instanceof String) {
             return (T) sp.getString(key, (String) defaultObject);
@@ -44,6 +48,10 @@ public class SpUtil {
         return null;
     }
 
+    public static void putSp(String file_name, @NonNull String key, @NonNull Object object) {
+        putSp(ContextUtil.get(), file_name, key, object);
+    }
+
     /**
      * 放入
      *
@@ -51,8 +59,8 @@ public class SpUtil {
      * @param key       键
      * @param object    值
      */
-    public void putSp(String file_name, @NonNull String key, @NonNull Object object) {
-        SharedPreferences sp = ContextUtil.get().getSharedPreferences(file_name, Context.MODE_PRIVATE);
+    public static void putSp(Context context, String file_name, @NonNull String key, @NonNull Object object) {
+        SharedPreferences sp = context.getSharedPreferences(file_name, Context.MODE_PRIVATE);
 
         SharedPreferences.Editor editor = sp.edit();
         if (object instanceof String) {

@@ -1,6 +1,8 @@
 package com.cookie.android.util.livedata
 
+import androidx.lifecycle.Observer
 import com.cookie.android.util.async.Task
+import com.cookie.android.util.runOnMainThread
 
 /**
  * 存储式LiveData
@@ -8,11 +10,19 @@ import com.cookie.android.util.async.Task
  *
  * @param <T>
 </T> */
-open class Store<T>:StoreImpl<T>{
+open class Store<T> : StoreImpl<T> {
     constructor() : super()
     constructor(default: T?) : super(default)
 
-    fun modify(transform: T.()->Unit) {
+    fun modify(transform: T.() -> Unit) {
         modify(Task(transform))
+    }
+
+    fun rePost(transform: T.() -> T) {
+        postValue(transform(value))
+    }
+
+    override fun observeForever(observer: Observer<in T>) {
+        runOnMainThread { super.observeForever(observer) }
     }
 }

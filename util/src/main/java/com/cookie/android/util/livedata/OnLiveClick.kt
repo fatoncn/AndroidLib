@@ -1,7 +1,7 @@
 package com.cookie.android.util.livedata
 
 import android.view.View
-import com.cookie.android.util.livedata.observer.SafeObserver
+import androidx.lifecycle.Observer
 
 /**
  * 用LiveClick代理点击事件的传递，以实现点击拦截（如过频繁点击等）
@@ -17,9 +17,12 @@ abstract class OnLiveClick : View.OnClickListener {
         mLiveClick.observeForever(ClickObserver())
     }
 
-    inner class ClickObserver : SafeObserver<View>() {
-        override fun onSafeChanged(t: View) {
-            onViewClick(t)
+    inner class ClickObserver : Observer<View> {
+
+        override fun onChanged(t: View?) {
+            t?.also {
+                onViewClick(t)
+            }
         }
     }
 

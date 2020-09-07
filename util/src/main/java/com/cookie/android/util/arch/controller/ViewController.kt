@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.SparseBooleanArray
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
@@ -16,7 +17,8 @@ import com.cookie.android.util.*
 import com.cookie.android.util.arch.view.ViewElement
 import com.cookie.android.util.livedata.LiveValue
 import com.cookie.android.util.livedata.Store
-import com.cookie.android.util.livedata.observer.SafeObserver
+import com.cookie.android.util.livedata.observer.PrimitiveObserver
+import java.lang.IllegalArgumentException
 
 /**
  * 替代Fragment的控制器方案，将Fragment的View层抽离出来，依赖于Activity
@@ -33,25 +35,29 @@ import com.cookie.android.util.livedata.observer.SafeObserver
 abstract class ViewController @JvmOverloads
 constructor(protected val parent: ViewElement, root: View, controllerId: String = "") : LifecycleOwner, LifecycleObserver, ViewElement {
 
-    constructor(parent: ViewElement, @LayoutRes layoutResId: Int, controllerId: String) : this(parent, layoutResId.inflate(parent.getRootActivity()), controllerId)
+    constructor(parent: ViewElement, @LayoutRes layoutResId: Int, controllerId: String) : this(parent, layoutResId.inflate(parent.rootActivity), controllerId)
 
     /**
      * 与Fragment的关联值，默认为类名，若该ViewController在Activity中存在多个相同的实例，则需要在
      * 构造器中传controllerId，controllerId根据具体业务定义唯一值以确保在Activity中的唯一性
      */
     protected val tag: String = if (controllerId.isEmpty()) javaClass.name else controllerId
+
     /**
      * 该Fragment用于绑定ViewModel、保存状态
      */
     private val delegateFragment: DelegateFragment
+
     /**
      * ViewController根布局
      */
     val root: View
+
     /**
      * ViewController的容器
      */
     private var container: ViewGroup? = null
+
     /**
      * 状态是否保存
      */
@@ -67,9 +73,9 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
         lifecycle.currentState = source.lifecycle.currentState
     }
 
-    val activity = parent.getRootActivity()
+    val activity = parent.rootActivity
 
-    private var maxAppearLevel = 3
+    internal var maxAppearLevel = 3
 
     companion object {
         const val APPEAR_LEVEL_PARENT = 0
@@ -96,21 +102,28 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
     internal fun getAppearLevel() = appearLevel.value
 
     init {
-        appearLevel.observeForever(object : SafeObserver<Int>(true) {
-            override fun onSafeChanged(t: Int) {
+        appearLevel.observeForever(object : PrimitiveObserver<Int>(true) {
+            override fun onValueChanged(oldOne: Int?, newOne: Int) {
+                if (oldOne == newOne)
+                    return
                 val newValue = appearLevel.value >= maxAppearLevel
                 if (hasAppear() != newValue) {
                     hasAppear.postValue(newValue)
                 }
             }
         })
-        appearLevel.observeForever(object : SafeObserver<Int>(true) {
-            override fun onSafeChanged(t: Int) {
+        appearLevel.observeForever(object : PrimitiveObserver<Int>(true) {
+            override fun onValueChanged(oldOne: Int?, newOne: Int) {
+                if (oldOne == newOne)
+                    return
                 val newValue = appearLevel.value >= APPEAR_LEVEL_SHOW
                 if (isShow() != newValue)
                     isShow.postValue(newValue)
             }
         })
+        if (parent.lifecycle.currentState == Lifecycle.State.DESTROYED) {
+            throw IllegalArgumentException("parent must not be destroyed.")
+        }
     }
 
     /**
@@ -126,6 +139,7 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
 
     init {
         val parentFM = parent.getChildFragmentManager()
+
         /**
          * 先尝试取回绑定的Fragment，若为空则是第一次创建
          */
@@ -232,9 +246,8 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
         return delegateFragment.childFragmentManager
     }
 
-    override fun getRootActivity(): FragmentActivity {
-        return parent.getRootActivity()
-    }
+    override val rootActivity: FragmentActivity
+        get() = parent.rootActivity
 
     /**
      * 异步attach，attach会延时执行
@@ -248,6 +261,7 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
 
     /**
      * 将ViewController从它的父view移出，随后会执行view层的销毁并清理自身资源
+     * FIXME:对于生命周期为Init的情况，这里会闪退
      */
     fun detach() {
         container?.removeView(root)
@@ -292,7 +306,7 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
 
     override fun getLifecycle(): Lifecycle = lifecycle
 
-    fun <T : ViewModel> getViewModel(clazz: Class<T>): T = delegateFragment.getViewModel(clazz)
+    override fun <T : ViewModel> getViewModel(clazz: Class<T>): T = delegateFragment.getViewModel(clazz)
 
     fun <T : ViewModel> getActivityViewModel(clazz: Class<T>): T = activity.getViewModel(clazz)
 
@@ -308,20 +322,20 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
 
     fun getString(@StringRes resId: Int): String = getContext().getString(resId)
 
-    fun show(): ViewController {
+    @CallSuper
+    open fun show() {
         if (!appearValue[APPEAR_LEVEL_SHOW]) {
             appear(APPEAR_LEVEL_SHOW)
             root.visibility = View.VISIBLE
         }
-        return this
     }
 
-    fun hide(): ViewController {
+    @CallSuper
+    open fun hide() {
         if (appearValue[APPEAR_LEVEL_SHOW]) {
             disappear(APPEAR_LEVEL_SHOW)
             root.visibility = View.INVISIBLE
         }
-        return this
     }
 
     fun gone(): ViewController {

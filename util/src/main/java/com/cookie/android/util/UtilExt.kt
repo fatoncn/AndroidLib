@@ -151,7 +151,7 @@ fun <T : View> ViewController.findViewById(@IdRes resId: Int): T {
     return root.findViewById(resId)
 }
 
-fun <T> LifecycleOwner.observe(live: Live<T>, observer: Observer<T>) {
+fun <T> LifecycleOwner.observe(live: Live<T>, observer: Observer<in T>) {
     live.observe(this, observer)
 }
 
@@ -159,8 +159,11 @@ fun <T> LifecycleOwner.observeForever(live: Live<T>,  observer: (T) -> Unit) {
     live.observeForever(this, Observer(observer))
 }
 
+fun <T> observeForever(live: Live<T>,  observer: (T) -> Unit) {
+    live.observeForever(Observer(observer))
+}
 
-fun <T> LifecycleOwner.observeForever(live: Live<T>, observer: Observer<T>) {
+fun <T> LifecycleOwner.observeForever(live: Live<T>, observer: Observer<in T>) {
     live.observeForever(this, observer)
 }
 
@@ -168,7 +171,7 @@ fun <T> LifecycleOwner.observe(live: Live<T>,  observer: (T) -> Unit) {
     live.observe(this, Observer(observer))
 }
 
-fun <T> LifecycleOwner.observe(live: LiveData<T>, observer: Observer<T>) {
+fun <T> LifecycleOwner.observe(live: LiveData<T>, observer: Observer<in T>) {
     live.observe(this, observer)
 }
 

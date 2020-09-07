@@ -21,14 +21,14 @@ public class IntTypeAdapter implements JsonDeserializer<Integer> {
             return json.getAsJsonPrimitive().getAsInt();
         else if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
             String value = json.getAsJsonPrimitive().getAsString();
-            int number = FormatUtils.toInt(value, 0);
+            int number = FormatUtils.toInt(value, -1);
             float number0 = FormatUtils.toFloat(value);
-            if (number == 0)
+            if (number == -1)
                 return (int) number0;
             else
                 return number;
         }
-        return 0;
+        return -1;
     }
 //
 //    @Override

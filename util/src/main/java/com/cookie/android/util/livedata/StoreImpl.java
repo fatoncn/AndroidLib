@@ -29,7 +29,7 @@ import static com.cookie.android.util.Utils.runOnMainDelay;
  * {@link Store}的java的实现部分
  * @param <T>
  */
-public abstract class StoreImpl<T> extends LivePosterImpl<T> implements LiveValue<T>,ValuePoster<T>  {
+public abstract class StoreImpl<T> extends LivePosterImpl<T> implements LiveValue<T>, ValuePoster<T> {
 
     private final Object mDataLock = new Object();
     protected SafeIterableMap<Observer<? super T>, ObserverWrapper> mObservers =
@@ -243,6 +243,7 @@ public abstract class StoreImpl<T> extends LivePosterImpl<T> implements LiveValu
 
     /**
      * 随owner观察，只有owner活跃时才会通知，当owner销毁时会移除
+     *
      * @param owner
      * @param observer
      */
@@ -380,8 +381,9 @@ public abstract class StoreImpl<T> extends LivePosterImpl<T> implements LiveValu
      * @param fun
      */
     public void modify(@NonNull Task<T> fun) {
-        fun.run(getValue());
-        postValue(getValue());
+        T v = getValue();
+        fun.run(v);
+        postValue(v);
     }
 
     @Override
@@ -399,7 +401,7 @@ public abstract class StoreImpl<T> extends LivePosterImpl<T> implements LiveValu
         return mVersion;
     }
 
-    private class AlwaysActiveObserver extends LifecycleBoundObserver{
+    private class AlwaysActiveObserver extends LifecycleBoundObserver {
 
         AlwaysActiveObserver(@NonNull LifecycleOwner owner, Observer<? super T> observer) {
             super(owner, observer);

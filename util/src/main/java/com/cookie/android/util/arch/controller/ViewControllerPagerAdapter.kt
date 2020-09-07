@@ -1,4 +1,5 @@
 package com.cookie.android.util.arch.controller
+
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
@@ -35,6 +36,7 @@ abstract class ViewControllerPagerAdapter(private val needAttach: Boolean = true
     override fun instantiateItem(container: ViewGroup, position: Int): Any {
         val controllerId = makeViewControllerName(container.id, position)
         val viewController = getItem(position, controllerId)
+        viewController.maxAppearLevel = ViewController.APPEAR_LEVEL_PAGE
         if (needAttach)
             viewController.attach(container)
         return viewController
