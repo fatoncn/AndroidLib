@@ -18,6 +18,7 @@ import com.cookie.android.util.arch.view.ViewElement
 import com.cookie.android.util.livedata.LiveValue
 import com.cookie.android.util.livedata.Store
 import com.cookie.android.util.livedata.observer.PrimitiveObserver
+import com.cookie.android.util.livedata.to
 import java.lang.IllegalArgumentException
 
 /**
@@ -268,7 +269,8 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
         container = null
         //同步ViewController生命周期至destroyed
         parent.lifecycle.removeObserver(mLifecycleSyncObserver)
-        lifecycle.currentState = Lifecycle.State.DESTROYED
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED))
+            lifecycle.currentState = Lifecycle.State.DESTROYED
         disappear(APPEAR_LEVEL_ATTACH)
     }
 
@@ -277,9 +279,9 @@ constructor(protected val parent: ViewElement, root: View, controllerId: String 
         registry.addObserver(LifecycleEventObserver { owner, event ->
             when (event) {
                 Event.ON_CREATE -> {
-                    onCreate()
                     if (!stateSaved)
                         onInitCreate()
+                    onCreate()
                     onActivityCreated()
                     onViewCreated()
                 }

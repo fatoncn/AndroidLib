@@ -26,3 +26,42 @@ open class Store<T> : StoreImpl<T> {
         runOnMainThread { super.observeForever(observer) }
     }
 }
+
+fun <T, R> Store<T>.valueFrom(live: Live<R>) {
+    from(live) {
+        value
+    }
+}
+
+fun <T, R> Live<T>.toValue(live: Store<R>) {
+    to(live) {
+        live.value
+    }
+}
+
+fun <T, R> Live<T>.toValueWithOld(live: Store<R>, transformWithOld: T.(R) -> R) {
+    to(live) {
+        transformWithOld(live.value)
+    }
+}
+
+fun <T, R> Store<T>.valueFromWithOld(live: Live<R>, transformWithOld: R.(T) -> T) {
+    from(live) {
+        transformWithOld(value)
+    }
+}
+
+fun <T, R> Live<T>.toValueWithStore(live: Store<R>, transformWithStore: T.(Store<R>) -> Unit) {
+    to(live) {
+        transformWithStore(live)
+        throw NoTransformAction()
+    }
+}
+
+fun <T, R> Store<T>.valueFromWithStore(live: Live<R>, transformWithStore: R.(Store<T>) -> Unit) {
+    val to = this
+    from(live) {
+        transformWithStore(to)
+        throw NoTransformAction()
+    }
+}

@@ -19,6 +19,7 @@ public class LogConfig {
 
     static final int JSON_INDENT = 4;
 
+
     static final int V = 0x1;
     static final int D = 0x2;
     static final int I = 0x3;
@@ -38,6 +39,7 @@ public class LogConfig {
     }
 
     private static File sDefaultLogDir;
+    static int fileDays = 7;
 
     public static void initLogDirName(String dirName) {
         if (dirName == null || dirName.isEmpty())
@@ -52,6 +54,10 @@ public class LogConfig {
 
     public static void initLogDir(File dir) {
         sDefaultLogDir = dir;
+    }
+
+    public static void setFileDays(int fileDays) {
+        LogConfig.fileDays = fileDays;
     }
 
     public static File getDefaultDir() {

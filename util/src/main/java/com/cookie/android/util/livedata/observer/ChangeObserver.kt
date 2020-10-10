@@ -38,12 +38,12 @@ abstract class DiffObserver<T>(notifyFirstValue: Boolean = true) : Observer<T> {
 
     abstract fun onValueChanged(oldOne: T?, newOne: T)
 
-    protected abstract fun copy(t: T): Any
+    protected abstract fun copy(t: T): Any?
 }
 
 abstract class ArrayObserver<T>(notifyFirstValue: Boolean = true) : DiffObserver<Array<T>>(notifyFirstValue) {
 
-    override fun copy(t: Array<T>): Any {
+    override fun copy(t: Array<T>): Any? {
         return t.copyOf()
     }
 
@@ -51,7 +51,7 @@ abstract class ArrayObserver<T>(notifyFirstValue: Boolean = true) : DiffObserver
 
 abstract class ListObserver<T>(notifyFirstValue: Boolean = true) : DiffObserver<List<T>>(notifyFirstValue) {
 
-    override fun copy(t: List<T>): Any {
+    override fun copy(t: List<T>): Any? {
         return ArrayList(t)
     }
 
@@ -60,8 +60,8 @@ abstract class ListObserver<T>(notifyFirstValue: Boolean = true) : DiffObserver<
 
 abstract class PrimitiveObserver<T>(notifyFirstValue: Boolean = true) : DiffObserver<T>(notifyFirstValue) {
 
-    override fun copy(t: T): Any {
-        return t as Any
+    override fun copy(t: T): Any? {
+        return t
     }
 
 }

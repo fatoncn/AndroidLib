@@ -138,7 +138,7 @@ public class FileLog {
     }
 
     private static String[] getLatestFileNames(Date target) {
-        Date[] dates = new Date[10];
+        Date[] dates = new Date[LogConfig.fileDays];
         dates[0] = target;
         for (int i = 1; i < dates.length; i++) {
             Date date = (Date) dates[i - 1].clone();
